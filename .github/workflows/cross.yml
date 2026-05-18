@@ -1,0 +1,80 @@
+name: cross
+
+# Cross-cutting checks that apply to every PR regardless of which subsystem
+# changed. Per-language workflows (rust.yml, swift.yml, web.yml, api.yml)
+# land alongside the first commit of their subsystem.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cross-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  format-check:
+    name: prettier --check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: bun install (frozen)
+        run: bun install --frozen-lockfile
+      - name: prettier --check
+        run: bun run format:check
+
+  file-budget:
+    name: file-budget (400/600)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: tools/check-file-budget.sh
+        run: bash tools/check-file-budget.sh
+
+  allowlist-shrinks-only:
+    name: budget-allowlist can only shrink
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: assert allowlist did not grow vs base
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          ALLOWLIST="tools/budget-allowlist.txt"
+          base_count=$(git show "${BASE_SHA}:${ALLOWLIST}" 2>/dev/null \
+            | grep -cvE '^[[:space:]]*(#|$)' || true)
+          head_count=$(grep -cvE '^[[:space:]]*(#|$)' "${ALLOWLIST}" || true)
+          echo "base (${BASE_SHA}): ${base_count} non-comment entries"
+          echo "head: ${head_count} non-comment entries"
+          if [ "${head_count}" -gt "${base_count}" ]; then
+            echo "::error file=${ALLOWLIST}::Allowlist grew by $((head_count - base_count)) entr(ies). It can only shrink — split the file(s) instead."
+            exit 1
+          fi
+
+  gitleaks:
+    name: gitleaks (secrets)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: install gitleaks
+        run: |
+          set -euo pipefail
+          VERSION=8.21.2
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" \
+            | tar -xz gitleaks
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+      - name: scan
+        run: gitleaks detect --no-banner --redact --verbose --source .
