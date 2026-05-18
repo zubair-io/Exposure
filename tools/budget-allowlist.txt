@@ -1,0 +1,9 @@
+# Files explicitly grandfathered above the 600-line hard budget.
+#
+# GOLDEN RULE: this file can only SHRINK, never grow.
+# CI enforces that diffing against `main` does not introduce new lines here.
+#
+# To remove a line: split the file, then drop it from this list in the same PR.
+# To add a line: don't. If absolutely necessary, the PR description must
+#                contain a written justification, a follow-up issue link, and
+#                explicit reviewer ack.
