@@ -1,0 +1,16 @@
+[install]
+# Pin exact versions on `bun add` (no caret/tilde). Drift catches bugs.
+exact = true
+
+# Always write the text lockfile (default since Bun 1.2) so PR reviews can
+# read it.
+saveTextLockfile = true
+
+# Don't install packages younger than 3 days — defence against just-published
+# typosquats and supply-chain compromises that haven't yet been flagged.
+minimumReleaseAge = 259200
+
+[install.security]
+# Supply-chain scanner runs during every `bun install`. The scanner package
+# is declared in devDependencies so a fresh checkout bootstraps cleanly.
+scanner = "@socketsecurity/bun-security-scanner"
