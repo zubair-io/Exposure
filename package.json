@@ -1,0 +1,25 @@
+{
+  "name": "exposure-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Exposure — non-destructive RAW photo editor",
+  "license": "UNLICENSED",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@commitlint/cli": "19.8.1",
+    "@commitlint/config-conventional": "19.8.1",
+    "@socketsecurity/bun-security-scanner": "1.1.2",
+    "prettier": "3.8.3"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}

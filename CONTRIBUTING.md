@@ -109,12 +109,12 @@ If it won't be, it's not a spec — find it another home.
 
 ## Tooling — what runs when
 
-| Phase | Tool | Catches |
-|---|---|---|
-| Editor save | `.editorconfig` | indent/EOL drift |
-| `git commit` | `lefthook` | formatting, file-budget, secrets |
-| `git push` / PR | `cross.yml` + per-subsystem CI | everything in the pre-commit + tests + linters + build |
-| Weekly cron | `audit.yml` (added with first lockfile) | `cargo audit`, `bun audit` CVEs |
+| Phase           | Tool                                    | Catches                                                |
+| --------------- | --------------------------------------- | ------------------------------------------------------ |
+| Editor save     | `.editorconfig`                         | indent/EOL drift                                       |
+| `git commit`    | `lefthook`                              | formatting, file-budget, secrets                       |
+| `git push` / PR | `cross.yml` + per-subsystem CI          | everything in the pre-commit + tests + linters + build |
+| Weekly cron     | `audit.yml` (added with first lockfile) | `cargo audit`, `bun audit` CVEs                        |
 
 The pre-commit hooks are aggressive on purpose; they catch the trivial
 stuff so reviewers don't have to. If you're tempted to skip them, the right
@@ -122,13 +122,13 @@ move is usually to fix the file, not bypass the check.
 
 ### Per-language formatter / linter
 
-| Language | Format | Lint |
-|---|---|---|
-| Rust | `cargo fmt` | `cargo clippy -- -D warnings` |
-| Swift | `xcrun swift-format` | `swiftlint` |
-| TypeScript | `prettier` | `eslint` (typescript-eslint + Angular where applicable) |
-| Python | `ruff format` | `ruff check` |
-| Shell | `shfmt` | `shellcheck` |
+| Language   | Format               | Lint                                                    |
+| ---------- | -------------------- | ------------------------------------------------------- |
+| Rust       | `cargo fmt`          | `cargo clippy -- -D warnings`                           |
+| Swift      | `xcrun swift-format` | `swiftlint`                                             |
+| TypeScript | `prettier`           | `eslint` (typescript-eslint + Angular where applicable) |
+| Python     | `ruff format`        | `ruff check`                                            |
+| Shell      | `shfmt`              | `shellcheck`                                            |
 
 Type-strictness defaults:
 
