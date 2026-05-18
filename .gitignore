@@ -1,0 +1,43 @@
+# macOS
+.DS_Store
+Icon
+*.swp
+
+# Editors
+.vscode/
+.idea/
+*.iml
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node / Bun
+node_modules/
+dist/
+.angular/
+
+# Rust
+target/
+**/*.rs.bk
+
+# Swift / Xcode
+.build/
+.swiftpm/
+**/xcuserdata/
+**/xcuserstate
+DerivedData/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.venv/
+
+# Test fixtures — large binaries fetched/regenerated separately.
+# See docs/spec/ for instructions once that doc lands.
+test-fixtures/*
+!test-fixtures/README.md
+!test-fixtures/budgets.json

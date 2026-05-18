@@ -1,0 +1,38 @@
+# Normalise line endings to LF for all text files.
+* text=auto eol=lf
+
+# Explicit overrides for shell + Windows-only files (none yet, but future-proof).
+*.sh   text eol=lf
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# Lockfiles: keep tracked but don't show diffs in PRs (noisy).
+bun.lock      -diff
+bun.lockb     binary
+package-lock.json -diff
+Cargo.lock    -diff
+Package.resolved -diff
+
+# Known binary types — mark explicitly so git never tries to text-diff them.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.dng  binary
+*.tiff binary
+*.tif  binary
+*.heic binary
+*.raw  binary
+*.cr2  binary
+*.nef  binary
+*.arw  binary
+*.pdf  binary
+*.zip  binary
+*.tar.gz binary
+*.tgz  binary
+*.xcframework binary
+*.a    binary
+*.dylib binary
+*.so   binary
+*.wasm binary
