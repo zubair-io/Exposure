@@ -1,0 +1,57 @@
+# Pre-commit hooks for Exposure.
+#
+# Philosophy: fast checks only at commit time (formatters, file-budget,
+# secrets). Expensive checks (build, lint, test) run in CI.
+#
+# Hooks are installed by `bun install` (via the `prepare` script). To
+# install manually: `bunx lefthook install`. To bypass in an emergency:
+# `git commit --no-verify` — but the PR description must justify it, per
+# CONTRIBUTING.md.
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: prettier
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,html,scss,css,json,yaml,yml,md,graphql}"
+      run: bunx prettier --check {staged_files}
+
+    - name: rustfmt
+      glob: "*.rs"
+      # rustfmt --check exits non-zero if anything would change.
+      run: rustfmt --edition 2021 --check {staged_files}
+
+    - name: swift-format
+      glob: "*.swift"
+      # xcrun resolves to the Xcode toolchain's swift-format (ships with
+      # Xcode 16+). --strict promotes lint warnings to errors.
+      run: xcrun swift-format lint --strict --configuration .swift-format {staged_files}
+
+    - name: ruff
+      glob: "*.py"
+      # Combined format-check + lint in one job (cheap enough).
+      run: ruff format --check {staged_files} && ruff check {staged_files}
+
+    - name: shfmt
+      glob: "*.{sh,bash}"
+      run: shfmt -d {staged_files}
+
+    - name: file-budget
+      # File-size enforcement, see CONTRIBUTING.md § 2.
+      glob: "*.{rs,swift,ts,tsx,js,py}"
+      run: tools/check-file-budget.sh {staged_files}
+
+    - name: gitleaks
+      # Secrets scan. Locally optional (skips if not installed); CI is the
+      # gate. Install with: brew install gitleaks.
+      run: |
+        if command -v gitleaks >/dev/null 2>&1; then
+          gitleaks protect --staged --no-banner --redact
+        else
+          echo "[lefthook] gitleaks not installed locally; CI will enforce. (brew install gitleaks to silence)"
+        fi
+
+commit-msg:
+  jobs:
+    - name: commitlint
+      # Enforces Conventional Commits (see CONTRIBUTING.md § Commits).
+      run: bunx commitlint --edit {1}
