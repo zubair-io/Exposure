@@ -4,7 +4,7 @@
 **Applies to:** All Swift code under `src/apple/`.
 **Scope:** SwiftUI screens (browse / view / select) and the state plumbing
 behind them. **Editor state is out of scope** of this spec — see
-`editor-state.md` (TBD) for slider, undo/redo, and render coordination
+`05-editor-state.md` for slider, undo/redo, and render coordination
 patterns.
 
 This spec is the Apple-side parallel to `01-frontend-architecture.md`. The
@@ -433,8 +433,8 @@ Each gets its own spec when first implemented; do not extrapolate this
 spec to cover them.
 
 - **Editor state** — slider drags at 60 Hz, undo/redo stacks, two-phase
-  rendering, render-phase cancellation, mid-edit XMP. → `editor-state.md`
-  (TBD).
+  rendering, render-phase cancellation, mid-edit XMP. →
+  `05-editor-state.md`.
 - **Metal pipeline** — Metal kernels, command-buffer scheduling, GPU
   resource lifetime. → `color-pipeline.md` (TBD).
 - **File Provider extension** — extension lifecycle, capabilities, sandbox

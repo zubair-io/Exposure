@@ -3,7 +3,7 @@
 **Status:** Active.
 **Applies to:** All Angular code under `src/web/`.
 **Scope:** Browse / view / select UI. **Editor state is out of scope** of this
-spec — see `editor-state.md` (TBD) for slider, undo/redo, and render
+spec — see `05-editor-state.md` for slider, undo/redo, and render
 coordination patterns.
 
 ## The rule
@@ -313,7 +313,7 @@ Each gets its own spec when first implemented; do not extrapolate this
 spec to cover them.
 
 - **Editor state** — slider drags at 60 Hz, undo/redo stacks, render-phase
-  coordination, mid-edit XMP. → `editor-state.md` (TBD).
+  coordination, mid-edit XMP. → `05-editor-state.md`.
 - **Cross-store coordination** — "when library changes, refetch photos."
   Probably an effect or a derived store. → `store-coordination.md` (TBD).
 - **URL state / router as source of truth** — deep-linkable selections,
