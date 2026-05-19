@@ -62,6 +62,7 @@ Every view with non-trivial derivation has a sibling `*+VM.swift`:
 ```
 PhotoGalleryView.swift
 PhotoGalleryView+VM.swift          ← pure function + VM type
+PhotoGalleryView+Previews.swift    ← #Preview blocks (see next section)
 PhotoGalleryViewVMTests.swift      ← XCTest of the function, no UI
 ```
 
@@ -69,6 +70,100 @@ The VM builder takes plain values (arrays, primitives, the selection
 state), returns the shape the view wants, and imports nothing from
 SwiftUI. Tests run as plain XCTest cases against the function, not via UI
 harness.
+
+## View previews: `#Preview`
+
+Every `View` has at least one `#Preview` block. Views with meaningfully
+different states get a `#Preview` per state. Xcode Previews are the
+canonical "isolated view" harness for SwiftUI; no third-party tool
+(Storybook-equivalent, Component-kit, etc.) is introduced — the framework
+support is sufficient and the previews are also build-validated by Xcode.
+
+### Required previews per view
+
+| Preview (named) | When                                                           |
+| --------------- | -------------------------------------------------------------- |
+| `"Default"`     | Always. The view in its typical state.                         |
+| `"Loading"`     | If the view shows a loading state.                             |
+| `"Empty"`       | If the view can render with no data.                           |
+| `"Error"`       | If the view handles an error state.                            |
+| `"EdgeCases"`   | Long text, missing images, extreme values — author discretion. |
+
+Use the new `#Preview("name")` macro; the label appears in the Xcode
+canvas selector. Skip previews only for trivial leaf views with no
+meaningful state (e.g. a static icon).
+
+### Stub stores via `.preview(...)` factories
+
+Each `@Observable` app service exposes a `static func preview(...)` that
+returns a pre-populated instance. The factory lives in the same file as
+the service. Views inject stubs into previews via `.environment(...)` the
+same way the app does at the root:
+
+```swift
+// In LibraryStore.swift
+extension LibraryStore {
+    static func preview(
+        libraries: [Library] = [.sample, .sample2],
+        isLoading: Bool = false
+    ) -> LibraryStore {
+        let store = LibraryStore(repository: .preview)
+        store.applyForPreview(libraries: libraries, isLoading: isLoading)
+        return store
+    }
+}
+
+// In PhotoGalleryView+Previews.swift
+#Preview("Default") {
+    PhotoGalleryView()
+        .environment(LibraryStore.preview())
+        .environment(PhotoStore.preview())
+}
+
+#Preview("Loading") {
+    PhotoGalleryView()
+        .environment(LibraryStore.preview(isLoading: true))
+        .environment(PhotoStore.preview(isLoading: true))
+}
+
+#Preview("Empty") {
+    PhotoGalleryView()
+        .environment(LibraryStore.preview(libraries: []))
+        .environment(PhotoStore.preview(photos: []))
+}
+```
+
+The `.preview` factory is the only sanctioned way to construct stub
+stores. Hand-rolled `LibraryStore(...)` calls inside previews are a smell
+— they leak production wiring into a preview file.
+
+### Preview traits
+
+Pin layout for screen-level views so previews render at a realistic size
+instead of intrinsic-content shrinking:
+
+```swift
+#Preview("macOS Default", traits: .fixedLayout(width: 1200, height: 800)) {
+    PhotoGalleryView()
+        .environment(LibraryStore.preview())
+}
+```
+
+For per-platform divergence, name the preview accordingly
+(`"macOS Default"`, `"iPad Default"`).
+
+### Catalog views
+
+For a "wall of views" overview (the Storybook screen-wall use case),
+build a one-off `PreviewCatalogView` that arranges target screens in a
+`LazyVStack`. Don't reach for a third-party tool.
+
+### CI gate
+
+`xcodebuild` automatically validates that all `#Preview` blocks compile.
+That's the contract: previews must build. Visual rendering is checked by
+the XCUITest visual harness for chrome screens; a per-screen visual
+regression layer is deferred.
 
 ## Defaults
 

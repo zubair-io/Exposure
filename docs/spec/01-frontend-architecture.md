@@ -62,11 +62,89 @@ photo-gallery.component.html
 photo-gallery.component.scss
 photo-gallery.vm.ts          ← pure function + VM type
 photo-gallery.vm.spec.ts     ← tested as a function, no TestBed
+photo-gallery.stories.ts     ← Storybook stories (see next section)
 ```
 
 The VM function takes plain values (arrays, primitives, the selection
 state), returns the shape the template wants, and does no I/O. Templates
 get one input (`vm()`); tests get a function with no Angular dependencies.
+
+## Component documentation: Storybook
+
+Every reusable component and every screen-level component has a sibling
+`*.stories.ts`. Stories run in isolation against stub stores so the
+component can be developed, reviewed, and accessibility-checked without
+the rest of the app. Skip stories only for purely structural shells
+(`AppShell`, route containers) where "in isolation" has no meaning.
+
+### Required stories per component
+
+| Story       | When                                                           |
+| ----------- | -------------------------------------------------------------- |
+| `Default`   | Always. The component in its typical state.                    |
+| `Loading`   | If the component shows a loading state.                        |
+| `Empty`     | If the component can render with no data.                      |
+| `Error`     | If the component handles an error state.                       |
+| `EdgeCases` | Long text, missing images, extreme values — author discretion. |
+
+Stories use **Component Story Format 3** (typed `Meta` + `StoryObj`
+exports). No `storiesOf`, no default-export-only stories.
+
+### Mocked dependencies
+
+Stores are stubbed via `moduleMetadata` providers — a plain object
+exposing the same signal accessors, not a real store instance. Convention:
+each store exports a `stub<StoreName>(overrides)` helper next to it.
+
+```ts
+const meta: Meta<PhotoGalleryComponent> = {
+  component: PhotoGalleryComponent,
+  decorators: [
+    moduleMetadata({
+      providers: [
+        { provide: LibraryStore, useValue: stubLibraryStore() },
+        { provide: PhotoStore, useValue: stubPhotoStore() },
+      ],
+    }),
+  ],
+};
+
+export const Default: StoryObj<PhotoGalleryComponent> = {};
+export const Loading: StoryObj<PhotoGalleryComponent> = {
+  decorators: [
+    moduleMetadata({
+      providers: [{ provide: LibraryStore, useValue: stubLibraryStore({ status: 'pending' }) }],
+    }),
+  ],
+};
+```
+
+### Addons (CI-enforced)
+
+- **`@storybook/addon-a11y`** — runs axe-core on every story. Zero
+  serious/critical violations; CI fails otherwise.
+- **`@storybook/addon-interactions`** — interaction tests live in the
+  story's `play` function (click, type, assert). Required for any
+  component with non-trivial user input.
+
+### CI gate
+
+The web subsystem CI workflow runs `storybook build` (static export) on
+every PR; the build must succeed. Visual-regression snapshotting
+(Chromatic / Loki) is deferred until there's a designer in the review
+loop.
+
+### Local commands
+
+```bash
+cd src/web
+bun run storybook          # dev server on port 6006
+bun run storybook:build    # static export to storybook-static/
+```
+
+Setup (`@storybook/angular`, `.storybook/main.ts`, `.storybook/preview.ts`,
+scripts) lands with the first web subsystem commit; this spec defines the
+contract for what stories must exist once the harness is in place.
 
 ## Defaults
 
